@@ -1,11 +1,13 @@
 .row {
     color: white;
     margin-left: 20px;
+    margin-top: 4rem;
 }
 
 .row_posters {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
     overflow-y: hidden;
     overflow-x: scroll;
     padding: 20px;
