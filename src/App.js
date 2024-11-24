@@ -1,14 +1,29 @@
 import React from 'react';
-import './App.css';
-import Nav from './components/Nav';
-import Banner from './components/Banner';
-import Row from './components/Row';
-import requests from "./components/Requests"
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'; 
+import './App.css'; 
+import Nav from './components/Nav'; 
+import Banner from './components/Banner'; 
+import Row from './components/Row'; 
+import MovieDetail from './components/MovieDetail'; // MovieDetail component
+import requests from './components/Requests'; 
 
 function App() {
   return (
-    <div className="App">
-      <Nav />
+    <Router>
+      <div className="App">
+        <Nav />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/movie/:id" element={<MovieDetail />} />
+        </Routes>
+      </div>
+    </Router>
+  );
+}
+
+function Home() {
+  return (
+    <>
       <Banner />
       <Row
         title="NETFLIX ORIGINALS"
@@ -21,8 +36,8 @@ function App() {
       <Row title="Comedy Movies" fetchUrl={requests.fetchTopComedyMovies} />
       <Row title="Horror Movies" fetchUrl={requests.fetchTopHorrorMovies} />
       <Row title="Romance Movies" fetchUrl={requests.fetchTopRomanceMovies} />
-      <Row title="Documentarires" fetchUrl={requests.fetchTopDocumentaries} />
-    </div>
+      <Row title="Documentaries" fetchUrl={requests.fetchTopDocumentaries} />
+    </>
   );
 }
 
