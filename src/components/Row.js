@@ -6,21 +6,34 @@ import { useNavigate } from "react-router-dom";
 
 const base_url = "https://image.tmdb.org/t/p/original/";
 
-function Row({ title, fetchUrl, isLargeRow = false }) {
+function Row({ title, fetchUrl, isLargeRow = false, onSearch }) {
   const [movies, setMovies] = useState([]);
   const [trailerUrl, setTrailerUrl] = useState("");
-  const [visibleIndex, setVisibleIndex] = useState(0); // Track which index is currently visible
-  const itemsPerPage = 6; // Number of images visible at a time
+  const [visibleIndex, setVisibleIndex] = useState(0);
+  const [filteredMovies, setFilteredMovies] = useState([]);
+  const itemsPerPage = 6;
   const navigate = useNavigate();
 
   useEffect(() => {
     async function fetchData() {
       const request = await axios.get(fetchUrl);
       setMovies(request.data.results);
+      setFilteredMovies(request.data.results); // Initialize filteredMovies with all movies
       return request;
     }
     fetchData();
   }, [fetchUrl]);
+
+  useEffect(() => {
+    // Filter movies when the search term changes
+    if (onSearch) {
+      const filtered = movies.filter((movie) => {
+        const movieTitle = movie.title || movie.name || "";
+        return movieTitle.toLowerCase().includes(onSearch.toLowerCase());
+      });
+      setFilteredMovies(filtered);
+    }
+  }, [onSearch, movies]); // Re-run the filter effect when search term or movies change
 
   const opts = {
     height: "390",
@@ -30,9 +43,7 @@ function Row({ title, fetchUrl, isLargeRow = false }) {
     },
   };
 
-  // Handle movie card click for navigating to MovieDetail page
   const handleClick = (movie) => {
-    // Open trailer
     if (trailerUrl) {
       setTrailerUrl("");
     } else {
@@ -44,13 +55,11 @@ function Row({ title, fetchUrl, isLargeRow = false }) {
         .catch((error) => console.log(error));
     }
 
-    // Navigate to the MovieDetail page
     navigate(`/movie/${movie.id}`, { state: { movie } });
   };
 
-  // Handle navigation between pages of movies
   const handlePageNavigation = (direction) => {
-    const movieCount = movies.length;
+    const movieCount = filteredMovies.length;
     const maxVisibleIndex = Math.ceil(movieCount / itemsPerPage) - 1;
 
     if (direction === "left" && visibleIndex > 0) {
@@ -60,18 +69,15 @@ function Row({ title, fetchUrl, isLargeRow = false }) {
     }
   };
 
-  // Calculate the slice of movies to show based on the visibleIndex
-  const visibleMovies = movies.slice(
+  const visibleMovies = filteredMovies.slice(
     visibleIndex * itemsPerPage,
     visibleIndex * itemsPerPage + itemsPerPage
   );
 
   return (
     <div className="row py-8 mx-auto max-w-screen-xl relative">
-      {/* Title */}
       <h2 className="text-2xl font-bold mb-4 text-white text-center">{title}</h2>
 
-      {/* Navigation Arrows */}
       {visibleIndex > 0 && (
         <button
           onClick={() => handlePageNavigation("left")}
@@ -82,7 +88,7 @@ function Row({ title, fetchUrl, isLargeRow = false }) {
         </button>
       )}
 
-      {visibleIndex < Math.ceil(movies.length / itemsPerPage) - 1 && (
+      {visibleIndex < Math.ceil(filteredMovies.length / itemsPerPage) - 1 && (
         <button
           onClick={() => handlePageNavigation("right")}
           className="absolute top-1/2 right-2 transform -translate-y-1/2 bg-black bg-opacity-60 text-white px-2 py-2 rounded-full z-10 hover:bg-opacity-80 focus:outline-none"
@@ -92,28 +98,21 @@ function Row({ title, fetchUrl, isLargeRow = false }) {
         </button>
       )}
 
-      {/* Movie Posters Container */}
       <div className="row_posters flex justify-center space-x-6 mx-auto">
         {visibleMovies.map((movie) =>
           ((isLargeRow && movie.poster_path) ||
             (!isLargeRow && movie.backdrop_path)) && (
             <div
               key={movie.id}
-              className={`relative group ${
-                isLargeRow ? "w-40 h-60 md:w-48 md:h-72" : "w-40 h-60 md:w-48 md:h-72"
-              }`}
+              className={`relative group ${isLargeRow ? "w-40 h-60 md:w-48 md:h-72" : "w-40 h-60 md:w-48 md:h-72"}`}
             >
               <img
                 onClick={() => handleClick(movie)}
-                className={`cursor-pointer transition-transform duration-200 ease-in-out transform hover:scale-110 rounded-lg shadow-md ${
-                  isLargeRow ? "w-full h-full" : "w-full h-full"
-                }`}
-                src={`${base_url}${
-                  isLargeRow ? movie.poster_path : movie.backdrop_path
-                }`}
+                className={`cursor-pointer transition-transform duration-200 ease-in-out transform hover:scale-110 rounded-lg shadow-md`}
+                src={`${base_url}${isLargeRow ? movie.poster_path : movie.backdrop_path}`}
                 alt={movie.name}
                 style={{
-                  filter: "brightness(85%) contrast(105%)", // Adjust visibility
+                  filter: "brightness(85%) contrast(105%)",
                 }}
               />
             </div>
@@ -121,7 +120,6 @@ function Row({ title, fetchUrl, isLargeRow = false }) {
         )}
       </div>
 
-      {/* Trailer Section */}
       {trailerUrl && (
         <div className="youtube-container my-6">
           <Youtube videoId={trailerUrl} opts={opts} />

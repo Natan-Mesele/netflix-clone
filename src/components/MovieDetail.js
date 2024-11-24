@@ -9,8 +9,10 @@ function MovieDetail() {
   const [trailerUrl, setTrailerUrl] = useState("");
 
   useEffect(() => {
+    // Scroll to the top of the page when the component is mounted or updated
+    window.scrollTo(0, 0);
+
     if (movie) {
-      // Automatically search for the movie trailer when the component loads
       movieTrailer(movie?.name || movie?.title || "")
         .then((url) => {
           const urlParams = new URLSearchParams(new URL(url).search);
@@ -37,7 +39,7 @@ function MovieDetail() {
   }
 
   return (
-    <div className="movie-detail max-w-screen-xl mx-auto py-8 px-4 text-white">
+    <div className="movie-detail max-w-screen-xl mx-auto py-8 px-4 text-white mt-16">
       {/* Display Trailer if available at the top */}
       {trailerUrl && (
         <div className="youtube-container my-8 max-w-4xl mx-auto">
